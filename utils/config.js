@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { PORT } = process.env;
+let PORT = process.env.PORT;
 
 module.exports = {
   PORT,
