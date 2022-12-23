@@ -48,6 +48,38 @@ test('a specific blog is within the returned blogs', async () => {
   expect(contents).toContain('Browser can execute only Javascript');
 });
 
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'async/await simplifies making async calls',
+    author: 'Hoang Minh',
+    url: 'example.com',
+    likes: 20,
+  };
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/);
+
+  const response = await api.get('/api/blogs');
+
+  const contents = response.body.map((blog) => blog.title);
+
+  expect(response.body).toHaveLength(initialBlogs.length + 1);
+  expect(contents).toContain('async/await simplifies making async calls');
+});
+
+test('blog without content is not added', async () => {
+  const emptyBlog = {};
+
+  await api.post('/api/blogs').send(emptyBlog).expect(400);
+
+  const response = await api.get('/api/blogs');
+
+  expect(response.body).toHaveLength(initialBlogs.length);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
