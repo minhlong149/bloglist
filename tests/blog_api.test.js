@@ -8,10 +8,7 @@ const api = supertest(app);
 
 beforeEach(async () => {
   await Blog.deleteMany({});
-  initialBlogs.forEach(async (blog) => {
-    const blogObject = new Blog(blog);
-    await blogObject.save();
-  });
+  await Blog.insertMany(initialBlogs);
 });
 
 describe('when there is initially some blogs saved', () => {
@@ -67,6 +64,23 @@ describe('when there is initially some blogs saved', () => {
       const blogsAtEnd = await blogsInDb();
 
       expect(blogsAtEnd).toHaveLength(initialBlogs.length);
+    });
+  });
+
+  describe('deletion of a blog', () => {
+    test('succeeds with status code 204 if id is valid', async () => {
+      const blogsAtStart = await blogsInDb();
+      const blogToDelete = blogsAtStart[0];
+
+      await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+
+      const blogsAtEnd = await blogsInDb();
+
+      expect(blogsAtEnd).toHaveLength(initialBlogs.length - 1);
+
+      const contents = blogsAtEnd.map((blog) => blog.title);
+
+      expect(contents).not.toContain(blogToDelete.title);
     });
   });
 });
