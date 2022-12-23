@@ -2,23 +2,9 @@ const mongoose = require('mongoose');
 const supertest = require('supertest');
 const app = require('../app');
 const Blog = require('../models/blog');
+const { initialBlogs, blogsInDb } = require('./test_helper');
 
 const api = supertest(app);
-
-const initialBlogs = [
-  {
-    title: 'HTML is easy',
-    author: 'Long Nguyen',
-    url: 'example.com',
-    likes: 22,
-  },
-  {
-    title: 'Browser can execute only Javascript',
-    author: 'Hoang Minh',
-    url: 'example.com',
-    likes: 14,
-  },
-];
 
 beforeEach(async () => {
   await Blog.deleteMany({});
@@ -33,7 +19,7 @@ test('blogs are returned as json', async () => {
     .get('/api/blogs')
     .expect(200)
     .expect('Content-Type', /application\/json/);
-}, 100000);
+});
 
 test('all blogs are returned', async () => {
   const response = await api.get('/api/blogs');
@@ -62,11 +48,12 @@ test('a valid blog can be added', async () => {
     .expect(201)
     .expect('Content-Type', /application\/json/);
 
-  const response = await api.get('/api/blogs');
+  const blogsAtEnd = await blogsInDb();
 
-  const contents = response.body.map((blog) => blog.title);
+  const contents = blogsAtEnd.map((blog) => blog.title);
 
-  expect(response.body).toHaveLength(initialBlogs.length + 1);
+  expect(blogsAtEnd).toHaveLength(initialBlogs.length + 1);
+
   expect(contents).toContain('async/await simplifies making async calls');
 });
 
@@ -75,9 +62,9 @@ test('blog without content is not added', async () => {
 
   await api.post('/api/blogs').send(emptyBlog).expect(400);
 
-  const response = await api.get('/api/blogs');
+  const blogsAtEnd = await blogsInDb();
 
-  expect(response.body).toHaveLength(initialBlogs.length);
+  expect(blogsAtEnd).toHaveLength(initialBlogs.length);
 });
 
 afterAll(() => {
