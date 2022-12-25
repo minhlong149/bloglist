@@ -83,6 +83,25 @@ describe('when there is initially some blogs saved', () => {
       expect(contents).not.toContain(blogToDelete.title);
     });
   });
+
+  test('update blog like', async () => {
+    const blogsAtStart = await blogsInDb();
+    const blogToUpdate = blogsAtStart[0];
+
+    const likesUpdated = blogToUpdate.likes + 1;
+
+    await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send({
+        likes: likesUpdated,
+      })
+      .expect('Content-Type', /application\/json/);
+
+    const blogsAtEnd = await blogsInDb();
+    const updatedBlog = blogsAtEnd[0];
+
+    expect(updatedBlog.likes).toBe(likesUpdated);
+  });
 });
 
 afterAll(() => {
