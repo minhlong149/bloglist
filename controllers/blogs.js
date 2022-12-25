@@ -32,6 +32,29 @@ blogsRouter.post('/', async (request, response) => {
   response.status(201).json(savedBlog);
 });
 
+blogsRouter.put('/:id', async (request, response) => {
+  const { likes } = request.body;
+
+  if (!likes) {
+    return response.status(400).json('likes missing');
+  }
+
+  const { id } = request.params;
+
+  const update = {
+    likes: likes,
+  };
+
+  const option = {
+    new: true,
+    runValidators: true,
+    context: 'query',
+  };
+
+  const updatedBlog = await Blog.findByIdAndUpdate(id, update, option);
+  response.json(updatedBlog);
+});
+
 blogsRouter.delete('/:id', async (request, response) => {
   const { id } = request.params;
   await Blog.findByIdAndRemove(id);
