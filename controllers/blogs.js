@@ -76,7 +76,22 @@ blogsRouter.put('/:id', async (request, response) => {
 });
 
 blogsRouter.delete('/:id', async (request, response) => {
+  const decodedToken = jwt.verify(request.token, process.env.SECRET_SIGNATURE);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' });
+  }
+
   const { id } = request.params;
+  const blog = await Blog.findById(id);
+
+  // There may be a case where an invalid user
+  // delete a blog that does not exist
+
+  const isCreator = blog.user.toString() === decodedToken.id.toString();
+  if (!isCreator) {
+    return response.status(403).json('invalid user');
+  }
+
   await Blog.findByIdAndRemove(id);
   response.status(204).end();
 });
