@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
-const uniqueValidator = require('mongoose-unique-validator');
+const uniqueValidator = require('mongoose-unique-validator'); // checking the uniqueness of a field
 
 const userSchema = new mongoose.Schema({
-  username: String,
+  username: {
+    type: String,
+    unique: [true, 'username must be unique'],
+    require: [true, 'username not found'],
+    minLength: [3, 'username must be at least 3 characters long'],
+  },
   name: String,
-  passwordHash: String,
-  // The ids of the blogs are stored within the user document
-  // as an array of Mongo ids.
+  passwordHash: {
+    type: String,
+    require: [true, 'password not found'],
+    minLength: [3, 'password must be at least 3 characters long'],
+  },
   blogs: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +29,6 @@ userSchema.set('toJSON', {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
-    // the passwordHash should not be revealed
     delete returnedObject.passwordHash;
   },
 });
