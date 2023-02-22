@@ -1,35 +1,33 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken'); // generate JSON web tokens
+const bcrypt = require('bcrypt'); // check if the password is correct
 const loginRouter = require('express').Router();
 const User = require('../models/user');
 
 loginRouter.post('/', async (request, response) => {
   const { username, password } = request.body;
 
-  // Searching for the user from the database
-  // by the username attached to the request
   const user = await User.findOne({ username });
-
-  // Check if the password is correct
   const passwordCorrect =
     user === null ? false : await bcrypt.compare(password, user.passwordHash);
 
-  if (!(user && passwordCorrect)) {
+  const unauthorized = !(user && passwordCorrect);
+  if (unauthorized) {
     return response.status(401).json({
       error: 'invalid username or password',
     });
   }
 
-  // The password is correct, a token is created
-  // contains the username and the user id
+  // A token is created if the password is correct
   const userForToken = {
     username: user.username,
     id: user._id,
   };
 
+  // sign the token from the secret
+  const secondPerHour = 60 * 60;
   const token = jwt.sign(userForToken, process.env.SECRET_SIGNATURE, {
-    // Limit the validity period of a token
-    expiresIn: 60 * 60,
+    // limit the validity period of a token
+    expiresIn: secondPerHour,
   });
 
   response
